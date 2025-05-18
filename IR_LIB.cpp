@@ -126,6 +126,7 @@ if(bitTimeCount >= 65){
     decodingCount1 = 0;
     decodingCount2 = 0;
     if(!StartBit) {
+        //Checks for and finds the start bit, a 9ms pulse followed by a 4.5ms space
         int startindx = -1;
         for(int i =0; i <bitTimeCount - 1; i++){
                 if((bitLength[i] >= NEC_HEADER_PULSE_MIN) && (bitLength[i] <= NEC_HEADER_PULSE_MAX) 
@@ -135,7 +136,6 @@ if(bitTimeCount >= 65){
                 break;
             }
         }
-        //Checks for the start bit, a 9ms pulse followed by a 4.5ms space
     if(startindx != -1){ 
             StartBit = 1;
             EndBit = 0;
