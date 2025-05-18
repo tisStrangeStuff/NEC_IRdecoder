@@ -1,3 +1,6 @@
+/*Note: Dont press the button to fast after after decoding, the IRRest loop is reather
+and tends not to rest the loop after the first go around for some reason.
+*/
 #include "IR_LIB.h"
 
 volatile unsigned long bitDecoding = 0; //Bit Timersss
@@ -6,6 +9,7 @@ volatile unsigned long previousISRTime = 0; // Bit previous timmmer
 bool StartBit = 0;
 bool EndBit = 1;
 
+//Storage arrays
 volatile unsigned int bitLength[70] = {0};
 unsigned int IRBits[32] = {0};
 
@@ -37,7 +41,7 @@ byte errorCode = 0x00;
 #define errorCode_NO_START 0x01
 #define errorCODE_IMPROPER_BIT 0x02
 #define errorCODE_IMPROPER_SPACE 0x03
-
+//Rest loop, restes all changing valuse after decoding.
 void IRReset(){
     EndBit = 1;
     StartBit = 0;
@@ -53,6 +57,7 @@ void IRReset(){
     }
  */
     if(errorCode != 0){
+        Serial.print("Error: ");
         Serial.println(errorCode, HEX);
         errorCode = 0; 
     }    
@@ -90,7 +95,7 @@ int intalizeIR(byte IRpin){
     return 0;
 }
 
-//Intterupt service routine
+//Intterupt service routine, stores all pulse lengths in a array, tends to be far more realible than RT decoding.
 ISR (INT0_vect){
 if(!StartBit){
     previousISRTime = bitDecoding;
@@ -110,6 +115,7 @@ void Decode(){
     IRReset();
     return;
 }
+//Debuggin shanganins
 if(bitTimeCount != 0){
     Serial.print("bitTimeCount: ");
     Serial.println(bitTimeCount);
@@ -122,31 +128,32 @@ if(bitTimeCount != 0){
     Serial.print("bitLength[3] = ");
     Serial.println(bitLength[3]);
 }
-if(bitTimeCount >= 65){
+if(bitTimeCount >= 65){ //Ensures at least 32 pules have been counted, or 32 bits have been recived.
     decodingCount1 = 0;
     decodingCount2 = 0;
     if(!StartBit) {
-        //Checks for and finds the start bit, a 9ms pulse followed by a 4.5ms space
+        //Looks for the start bit among the pulse length array, if found starts decoding.
         int startindx = -1;
         for(int i =0; i <bitTimeCount - 1; i++){
                 if((bitLength[i] >= NEC_HEADER_PULSE_MIN) && (bitLength[i] <= NEC_HEADER_PULSE_MAX) 
                 && (bitLength[i + 1] >= NEC_HEADER_SPACE_MIN) && (bitLength[i + 1] <= NEC_HEADER_SPACE_MAX)) {
                 startindx = i;
-                Serial.println("starting1");
+                //Serial.println("starting1");
                 break;
             }
         }
+        
     if(startindx != -1){ 
             StartBit = 1;
             EndBit = 0;
-            decodingCount1 = startindx + 2; 
+            decodingCount1 = startindx + 2;  //Sets which bits to start decdoing on.
             decodingCount2 = 0;
             memset(IRBits, 0, sizeof(IRBits)); //Clears previous data out of array.
-            Serial.println("starting2");
+            //Serial.println("starting2");
             } 
             
     }else{
-        // Skip the pulse and space
+        //Womp womp no start bit
         errorCode = errorCode_NO_START;
         IRReset();
         return;
@@ -156,7 +163,7 @@ if(bitTimeCount >= 65){
     
         //This is where the decoding happens
         //First if statments checks for the start pulse, indicating that a bit is being sent, and it is roughly 
-        //560micro seconds long
+
         if((bitLength[decodingCount1] >= NEC_BIT_SPACE_MIN) && (bitLength[decodingCount1] <= NEC_BIT_SPACE_MAX)){
             decodingCount1++; //Increments to next data point, to check for the space
             //Checks the space timing for interpation a 0 or one
@@ -165,7 +172,7 @@ if(bitTimeCount >= 65){
                 decodingCount2++; //Moves to check for next bit
             }
             else if((bitLength[decodingCount1] >= NEC_BIT_1_MIN) && (bitLength[decodingCount1] <= NEC_BIT_1_MAX)){
-                IRBits[decodingCount2] =1;
+                IRBits[decodingCount2] = 1;
                 decodingCount2++; // Moves to check for next bit
 
             }else{
@@ -194,8 +201,8 @@ if(bitTimeCount >= 65){
             Serial.println(command, HEX);
             IRReset();
             Serial.println("decoding complete");
-            delay(10000);
-
+            /* ***REMOVE AFTER DEBUGGIN*** */delay(10000); //Makes it far easier to debug and pull value from your remote to use in code
+            
 
             }
         }
@@ -206,7 +213,4 @@ if(bitTimeCount >= 65){
         //Serial.println("timeout");
     }
 }
-
-
-
 
