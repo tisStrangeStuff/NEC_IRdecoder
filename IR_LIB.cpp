@@ -179,6 +179,8 @@ if(bitTimeCount >= 4){
                 //Serial.println("REPEAT");
                 /**** REMOVE AFTER DEBUGGIN*** */
                 //delay(1000);
+                cmd();
+                addr();
                 IRReset();
                 return;
                     }
