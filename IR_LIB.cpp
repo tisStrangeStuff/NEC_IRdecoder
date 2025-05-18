@@ -1,4 +1,4 @@
-/*Note: Dont press the button to fast after after decoding, the IRRest loop is reather
+/*Note: Dont press the button to fast after after decoding, the IRRest loop is rather buggy
 and tends not to rest the loop after the first go around for some reason.
 */
 #include "IR_LIB.h"
