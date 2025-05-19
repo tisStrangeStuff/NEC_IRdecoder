@@ -1,4 +1,3 @@
-
 #ifndef IR_LIB_H
 #define IR_LIB_H
 
@@ -7,9 +6,11 @@
 extern volatile unsigned long bitDecoding;
 extern volatile unsigned long previousISRTime;
 
+extern volatile byte bitTimeCount;
 extern int intalizeIR(byte pin);
 
-extern volatile bool amReciving;
+extern bool decoded;
+extern volatile bool decodeReady;
 
 extern void Decode();
 
